@@ -1,0 +1,27 @@
+# Use node:18-alpine as the base image
+FROM node:20-alpine
+
+# Install bash (if not already installed)
+RUN apk add --no-cache bash
+
+# Set SHELL environment variable to bash
+ENV SHELL=/bin/bash
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy project files
+COPY . .
+COPY .dockerignore /app/.dockerignore
+
+# Install dependencies with pnpm
+RUN pnpm install
+
+# Expose port (if necessary)
+EXPOSE 3000
+
+# Start your application (adjust the command as needed)
+CMD ["pnpm", "run", "dev"]

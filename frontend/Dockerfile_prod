@@ -1,0 +1,55 @@
+# Stage 1: Install dependencies
+FROM node:20-alpine AS deps
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
+
+# Install only production dependencies and store them in the virtual store
+RUN pnpm fetch --prod
+
+# Stage 2: Build the application
+FROM node:20-alpine AS build
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Copy pnpm store from deps stage
+COPY --from=deps /pnpm-store /pnpm-store
+
+# Install dependencies from the fetched store
+RUN pnpm install --offline --prod
+
+# Build the application
+RUN pnpm run build
+
+# Stage 3: Create the production image
+FROM node:20-alpine
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy production node_modules and built application
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/dist ./dist
+
+# Expose port
+EXPOSE 3000
+
+# Start the application
+CMD ["pnpm", "run", "start"]

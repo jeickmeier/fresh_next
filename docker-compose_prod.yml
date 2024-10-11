@@ -1,0 +1,62 @@
+services:
+  paradedb:
+    image: paradedb/paradedb:latest
+    container_name: paradedb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      PARADEDB_TELEMETRY: false 
+    volumes:
+      - paradedb_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    command: ["postgres", "-c", "search_path=prism,public"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile_prod
+    container_name: frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    depends_on:
+      paradedb:
+        condition: service_healthy
+    extra_hosts:
+      - "paradedb:host-gateway"
+      - "backend:host-gateway"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile_prod
+    container_name: backend
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - /app/.venv
+    ports:
+      - "3001:3001"
+    environment:
+      - POETRY_VIRTUALENVS_IN_PROJECT=true
+    restart: unless-stopped
+    depends_on:
+      paradedb:
+        condition: service_healthy
+
+volumes:
+  paradedb_data:
