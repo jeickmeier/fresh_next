@@ -22,7 +22,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile_dev
+      dockerfile: docker/Dockerfile_dev
     container_name: frontend
     working_dir: /app
     volumes:
@@ -43,7 +43,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile_dev
+      dockerfile: docker/Dockerfile_dev
     container_name: backend
     working_dir: /app
     volumes:

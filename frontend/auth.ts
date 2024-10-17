@@ -15,7 +15,7 @@ const config = {
     GitHub({allowDangerousEmailAccountLinking: true}), 
     Google({allowDangerousEmailAccountLinking: true})],
   basePath: "/auth",
-  debug: process.env.NODE_ENV !== "production" ? true : false,
+  debug: false, //process.env.NODE_ENV !== "production" ? true : false,
   callbacks: {
     async session({ session, user }) {
       if (user) {
